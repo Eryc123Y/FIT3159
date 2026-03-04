@@ -61,3 +61,31 @@ Thumbs.db
 
 # Backup files
 *.bak
+
+# Typst artifacts
+.typst/
+
+# LaTeX artifacts
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.fdb_latexmk
+*.fls
+*.idx
+*.ilg
+*.ind
+*.lof
+*.lot
+*.nav
+*.out
+*.run.xml
+*.snm
+*.synctex.gz
+*.toc
+*.xdv
+
+# Verilog simulation binaries (iverilog output without extension)
+*_test
+*_demo
+*_sim
