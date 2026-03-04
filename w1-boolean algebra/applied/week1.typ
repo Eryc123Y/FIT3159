@@ -13,15 +13,12 @@
   ),
   course: "FIT3159 Computer Architecture",
 
-  // NOTE: Optionally specify this for a university logo on the first page.
-  // university-logo: image("./images/uni-logo.svg"),
+  university-logo: image("../../misc/Monash_University_logo.svg"),
 )
 
 = Generative AI Acknowledgement
 
 This assessment was completed with the assistance of generative artificial intelligence. Specifically, Claude (Anthropic, #link("https://claude.ai")[claude.ai]) was used to assist in structuring answers, generating Typst markup, and refining written explanations. All AI-generated content has been reviewed, verified against course materials, and modified as appropriate before inclusion.
-
-This acknowledgement is made in accordance with Monash University's policy on the use of generative AI in assessments. For further guidance, see #link("https://www.monash.edu/learnhq/build-digital-capabilities/create-online/acknowledging-the-use-of-generative-artificial-intelligence")[Monash LearnHQ — Acknowledging the use of generative artificial intelligence].
 
 = Question 1
 
@@ -61,7 +58,7 @@ where $N_0$ is the initial transistor count and $t$ is time in years.
 *Multi-core processing* places two or more independent CPU cores on one chip, enabling parallel execution of threads.
 
 *Performance improvement:*
-- Multiple threads run simultaneously, increasing throughput without raising clock speed.
+- Multiple threads run simultaneously, increasing throughput without raising clock speed on a single core.
 - Better performance-per-watt than boosting single-core frequency.
 
 *Challenges:*
