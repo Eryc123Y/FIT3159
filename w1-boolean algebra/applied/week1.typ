@@ -17,6 +17,12 @@
   // university-logo: image("./images/uni-logo.svg"),
 )
 
+= Generative AI Acknowledgement
+
+This assessment was completed with the assistance of generative artificial intelligence. Specifically, Claude (Anthropic, #link("https://claude.ai")[claude.ai]) was used to assist in structuring answers, generating Typst markup, and refining written explanations. All AI-generated content has been reviewed, verified against course materials, and modified as appropriate before inclusion.
+
+This acknowledgement is made in accordance with Monash University's policy on the use of generative AI in assessments. For further guidance, see #link("https://www.monash.edu/learnhq/build-digital-capabilities/create-online/acknowledging-the-use-of-generative-artificial-intelligence")[Monash LearnHQ — Acknowledging the use of generative artificial intelligence].
+
 = Question 1
 
 *Moore's Law* states that the number of transistors on a microchip doubles approximately every two years, while manufacturing costs remain constant.
