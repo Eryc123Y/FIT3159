@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "skills": {
+    "drawio-logical-diagrams": {
+      "source": "giuseppe-trisciuoglio/developer-kit",
+      "sourceType": "github",
+      "computedHash": "0a6d296e29eaf33982424850cb708f3f94efcfebc2b35d206a14f857eb072532"
+    }
+  }
+}
