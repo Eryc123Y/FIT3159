@@ -19,6 +19,7 @@ Required top-level shape:
 ## 2) Common Top-Level Nodes
 
 - `<lib name="..." desc="..."/>`: define libraries and IDs.
+- Include `#Base` library for edit tools (`Poke/Edit/Wiring/Text`).
 - `<main name="..."/>`: choose default circuit opened first.
 - `<circuit name="...">...</circuit>`: contain components and wires.
 - Optional in richer files: `<options>`, `<mappings>`, `<toolbar>`, `<vhdl>`.
@@ -39,6 +40,12 @@ Notes:
 - `name` must match a tool/component in that library.
 - `loc` should be integer coordinate in `(x,y)` format.
 - Attributes are `<a name="..." val="..."/>`.
+- Gate ports move with gate `size`; always set `size` explicitly when wires are hand-routed.
+  - `NOT Gate`: `size="20"` for worksheet-style spacing.
+  - `AND/OR/NAND/NOR/XOR/XNOR Gate`: `size="30"` for worksheet-style spacing.
+- For worksheet-style decoder layouts matching `1.circ`:
+  - left input pins: `facing="east"`
+  - right output pins: `facing="west"` with `labelloc="east"`
 
 ## 4) Wires
 
@@ -51,6 +58,8 @@ Wire format:
 Notes:
 - Endpoints should be grid-aligned integer points.
 - Zero-length wires are ignored by Logisim parser.
+- If two independent nets share any coordinate, they become connected (junction).
+- To cross without connecting, route one net around with a small offset.
 
 ## 5) Coordinates
 
@@ -75,13 +84,16 @@ Recommended canonical style:
       <a name="facing" val="east"/>
       <a name="type" val="input"/>
     </comp>
-    <comp lib="1" name="NOT Gate" loc="(170,100)"/>
+    <comp lib="1" name="NOT Gate" loc="(170,100)">
+      <a name="size" val="20"/>
+    </comp>
     <comp lib="0" name="Pin" loc="(240,100)">
       <a name="facing" val="west"/>
+      <a name="labelloc" val="east"/>
       <a name="type" val="output"/>
     </comp>
-    <wire from="(100,100)" to="(140,100)"/>
-    <wire from="(200,100)" to="(240,100)"/>
+    <wire from="(100,100)" to="(150,100)"/>
+    <wire from="(170,100)" to="(240,100)"/>
   </circuit>
 </project>
 ```

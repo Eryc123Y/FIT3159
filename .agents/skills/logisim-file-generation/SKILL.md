@@ -24,9 +24,16 @@ Use this skill to produce valid, loadable Logisim-evolution project XML with min
 3. Generate the `.circ` file with `scripts/generate_circ.py`.
 4. Validate structure with this checklist:
    - Keep root as `<project version="1.0" source="...">`.
+   - Ensure `#Base` library is present so Edit/Wiring tools are available.
    - Ensure each `<comp>` has `name` and `loc`.
    - Ensure each `<wire>` has `from` and `to`.
    - Ensure every referenced `lib` ID exists in `<lib .../>`.
+   - Ensure gate sizes match your coordinates (port offsets depend on `size`):
+     - `NOT Gate`: use `size=20` for worksheet-style spacing.
+     - logic gates (`AND/OR/NAND/...`): use `size=30` for worksheet-style spacing.
+   - Ensure Pin orientation matches the verified `1.circ` style:
+     - left-side inputs: `facing=east`
+     - right-side outputs: `facing=west` and `labelloc=east`
 5. Open in Logisim-evolution; if it loads, save once and keep the normalized output.
 
 ## JSON Spec Rules
@@ -69,3 +76,7 @@ Normalize all point locations to `(x,y)` format.
 - Invalid coordinate errors: rewrite points to `(x,y)` with integer values.
 - Unknown top-level node errors: keep top-level nodes limited to known Logisim nodes.
 - Pin compatibility issues in newer versions: prefer `type=input|output` and `behavior=...` style attributes.
+- Pin appears mirrored/disconnected: for right-side outputs use `facing=west` plus `labelloc=east` (as in `1.circ`).
+- Gate inputs disconnected: set explicit gate `size` values that match the routed coordinates (`NOT=20`, logic gates=30 for this style).
+- File opens but feels uneditable: include `#Base` library (the generator now auto-adds it), plus default toolbar/mappings.
+- Wrong logic from “connected-looking” wires: avoid sharing the same coordinate for independent nets; same coordinate means electrical connection.

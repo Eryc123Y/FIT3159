@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Any
@@ -92,6 +93,50 @@ def add_attr(parent: ET.Element, name: str, value: Any) -> None:
     attr.set("val", str(value))
 
 
+def normalize_component_attrs(component_name: str, attrs: dict[str, Any]) -> dict[str, Any]:
+    normalized = dict(attrs)
+
+    # Gate port coordinates depend on gate "size". When specs use hand-picked
+    # worksheet coordinates, explicit size prevents silent disconnections.
+    if component_name == "NOT Gate" and "size" not in normalized:
+        normalized["size"] = "20"
+
+    narrow_multi_input_gates = {
+        "AND Gate",
+        "NAND Gate",
+        "OR Gate",
+        "NOR Gate",
+        "XOR Gate",
+        "XNOR Gate",
+    }
+    if component_name in narrow_multi_input_gates and "size" not in normalized:
+        normalized["size"] = "30"
+
+    if component_name != "Pin":
+        return normalized
+
+    legacy_output = normalized.get("output")
+    if "type" not in normalized and legacy_output is not None:
+        legacy_value = str(legacy_output).strip().lower()
+        normalized["type"] = "output" if legacy_value == "true" else "input"
+        normalized.pop("output", None)
+
+    pin_type = str(normalized.get("type", "")).strip().lower()
+    if "facing" not in normalized:
+        # Match the verified reference style used in 1.circ:
+        # - input pins typically face east
+        # - output pins on the right side face west
+        normalized["facing"] = "west" if pin_type == "output" else "east"
+
+    if pin_type == "output" and "labelloc" not in normalized:
+        normalized["labelloc"] = "east"
+
+    if pin_type == "input" and "behavior" not in normalized:
+        normalized["behavior"] = "simple"
+
+    return normalized
+
+
 def normalize_libraries(raw_libraries: Any) -> list[dict[str, str]]:
     if raw_libraries is None:
         return DEFAULT_MINIMAL_LIBRARIES
@@ -114,6 +159,78 @@ def normalize_libraries(raw_libraries: Any) -> list[dict[str, str]]:
         seen_names.add(name)
         libraries.append({"name": name, "desc": desc})
     return libraries
+
+
+def find_library_name(libraries: list[dict[str, str]], desc: str) -> str | None:
+    for library in libraries:
+        if library["desc"] == desc:
+            return library["name"]
+    return None
+
+
+def choose_available_library_name(libraries: list[dict[str, str]]) -> str:
+    used = {library["name"] for library in libraries}
+    for candidate in ("9", "8", "A", "B", "C"):
+        if candidate not in used:
+            return candidate
+    number = 0
+    while str(number) in used:
+        number += 1
+    return str(number)
+
+
+def ensure_base_library(libraries: list[dict[str, str]]) -> list[dict[str, str]]:
+    if find_library_name(libraries, "#Base") is not None:
+        return libraries
+    extended = list(libraries)
+    extended.append({"name": choose_available_library_name(extended), "desc": "#Base"})
+    return extended
+
+
+def append_editor_defaults(project: ET.Element, libraries: list[dict[str, str]]) -> None:
+    base_lib = find_library_name(libraries, "#Base")
+    wiring_lib = find_library_name(libraries, "#Wiring")
+    gates_lib = find_library_name(libraries, "#Gates")
+
+    if base_lib is None:
+        return
+
+    options = ET.SubElement(project, "options")
+    add_attr(options, "gateUndefined", "ignore")
+    add_attr(options, "simlimit", "1000")
+    add_attr(options, "simrand", "0")
+
+    mappings = ET.SubElement(project, "mappings")
+    ET.SubElement(mappings, "tool", {"lib": base_lib, "name": "Poke Tool", "map": "Button2"})
+    ET.SubElement(mappings, "tool", {"lib": base_lib, "name": "Menu Tool", "map": "Button3"})
+    ET.SubElement(
+        mappings, "tool", {"lib": base_lib, "name": "Menu Tool", "map": "Ctrl Button1"}
+    )
+
+    toolbar = ET.SubElement(project, "toolbar")
+    ET.SubElement(toolbar, "tool", {"lib": base_lib, "name": "Poke Tool"})
+    ET.SubElement(toolbar, "tool", {"lib": base_lib, "name": "Edit Tool"})
+    ET.SubElement(toolbar, "tool", {"lib": base_lib, "name": "Wiring Tool"})
+    ET.SubElement(toolbar, "tool", {"lib": base_lib, "name": "Text Tool"})
+    ET.SubElement(toolbar, "sep")
+
+    if wiring_lib is not None:
+        ET.SubElement(toolbar, "tool", {"lib": wiring_lib, "name": "Pin"})
+        output_pin_tool = ET.SubElement(toolbar, "tool", {"lib": wiring_lib, "name": "Pin"})
+        add_attr(output_pin_tool, "facing", "west")
+        add_attr(output_pin_tool, "type", "output")
+        ET.SubElement(toolbar, "sep")
+
+    if gates_lib is not None:
+        for gate_name in (
+            "NOT Gate",
+            "AND Gate",
+            "OR Gate",
+            "XOR Gate",
+            "NAND Gate",
+            "NOR Gate",
+        ):
+            ET.SubElement(toolbar, "tool", {"lib": gates_lib, "name": gate_name})
 
 
 def build_circuit_element(circuit_data: dict[str, Any]) -> ET.Element:
@@ -163,7 +280,8 @@ def build_circuit_element(circuit_data: dict[str, Any]) -> ET.Element:
             attrs = {}
         if not isinstance(attrs, dict):
             raise ValueError(f"circuit '{name}' components[{idx}].attrs must be an object")
-        for attr_name, attr_value in attrs.items():
+        normalized_attrs = normalize_component_attrs(component_name, attrs)
+        for attr_name, attr_value in normalized_attrs.items():
             add_attr(component, attr_name, attr_value)
 
     wires = circuit_data.get("wires", [])
@@ -191,7 +309,7 @@ def build_from_spec(spec: dict[str, Any]) -> ET.ElementTree:
     if not isinstance(main_circuit_name, str) or not main_circuit_name:
         raise ValueError("'main' must be a non-empty string")
 
-    libraries = normalize_libraries(spec.get("libraries"))
+    libraries = ensure_base_library(normalize_libraries(spec.get("libraries")))
     circuits = spec.get("circuits")
     if not isinstance(circuits, list) or not circuits:
         raise ValueError("'circuits' must be a non-empty list")
@@ -213,6 +331,8 @@ def build_from_spec(spec: dict[str, Any]) -> ET.ElementTree:
 
     main = ET.SubElement(project, "main")
     main.set("name", main_circuit_name)
+
+    append_editor_defaults(project, libraries)
 
     for circuit_data in circuits:
         project.append(build_circuit_element(circuit_data))
@@ -257,27 +377,31 @@ def main() -> None:
     args = parse_args()
     output_path = Path(args.output)
 
-    if output_path.exists() and not args.overwrite:
-        raise SystemExit(
-            f"Output file '{output_path}' already exists. Use --overwrite to replace it."
-        )
-    if output_path.suffix != ".circ":
-        raise SystemExit("Output path must end with .circ")
+    try:
+        if output_path.exists() and not args.overwrite:
+            raise ValueError(
+                f"Output file '{output_path}' already exists. Use --overwrite to replace it."
+            )
+        if output_path.suffix != ".circ":
+            raise ValueError("Output path must end with .circ")
 
-    if args.spec:
-        with Path(args.spec).open("r", encoding="utf-8") as input_file:
-            spec_data = json.load(input_file)
-        if not isinstance(spec_data, dict):
-            raise SystemExit("Spec file must contain a JSON object at top level")
-        tree = build_from_spec(spec_data)
-    else:
-        tree = build_default(args.source, args.main_circuit, args.library_set)
+        if args.spec:
+            with Path(args.spec).open("r", encoding="utf-8") as input_file:
+                spec_data = json.load(input_file)
+            if not isinstance(spec_data, dict):
+                raise ValueError("Spec file must contain a JSON object at top level")
+            tree = build_from_spec(spec_data)
+        else:
+            tree = build_default(args.source, args.main_circuit, args.library_set)
 
-    root = tree.getroot()
-    indent_tree(root)
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    tree.write(output_path, encoding="UTF-8", xml_declaration=True)
-    print(f"[OK] Wrote Logisim file: {output_path}")
+        root = tree.getroot()
+        indent_tree(root)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        tree.write(output_path, encoding="UTF-8", xml_declaration=True)
+        print(f"[OK] Wrote Logisim file: {output_path}")
+    except (ValueError, KeyError, TypeError, json.JSONDecodeError, OSError) as exc:
+        print(f"[ERROR] {exc}", file=sys.stderr)
+        raise SystemExit(1) from None
 
 
 if __name__ == "__main__":
