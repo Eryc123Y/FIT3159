@@ -189,7 +189,7 @@ $ F(A, B, C) = A dot B + A dot overline(B) + B dot C + overline(B) dot C $
 
 *Significance:*
 - It is the fundamental unit of timing in digital circuits.
-- The critical path (longest chain of gates) determines the maximum clock frequency: $f_"max" = 1 / t_"critical path"$.
+- The critical path (longest chain of gates) determines the maximum clock frequency: $ f_"max" = 1 / t_"critical path". $
 - Minimising gate delay is essential for high-speed circuit design.
 - Cumulative delays across gate chains cause timing violations if the clock period is too short, leading to incorrect computation.
 
