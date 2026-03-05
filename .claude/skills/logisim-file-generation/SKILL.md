@@ -1,0 +1,71 @@
+---
+name: logisim-file-generation
+description: Generate and repair Logisim-evolution `.circ` XML files for digital logic projects. Use when creating Logisim files from scratch, converting circuit descriptions into valid `.circ` structure, fixing malformed component/wire XML, or producing reusable starter templates for FIT3159-style logic exercises.
+---
+
+# Logisim File Generation
+
+Use this skill to produce valid, loadable Logisim-evolution project XML with minimal trial-and-error. Prefer deterministic generation via script, then adjust manually only when needed.
+
+## Quick Start
+
+1. Build a starter project:
+   - `python3 scripts/generate_circ.py --output ./my_circuit.circ`
+2. Build from a JSON circuit specification:
+   - `python3 scripts/generate_circ.py --spec ./spec.json --output ./my_circuit.circ`
+3. Open the result in Logisim-evolution and save once to normalize ordering/formatting.
+
+## Workflow
+
+1. Select generation mode:
+   - Use template mode for a blank or minimal starter circuit.
+   - Use spec mode when components/wires are already described in structured form.
+2. Load `references/file-format-cheatsheet.md` before manual XML editing.
+3. Generate the `.circ` file with `scripts/generate_circ.py`.
+4. Validate structure with this checklist:
+   - Keep root as `<project version="1.0" source="...">`.
+   - Ensure each `<comp>` has `name` and `loc`.
+   - Ensure each `<wire>` has `from` and `to`.
+   - Ensure every referenced `lib` ID exists in `<lib .../>`.
+5. Open in Logisim-evolution; if it loads, save once and keep the normalized output.
+
+## JSON Spec Rules
+
+Use this high-level JSON schema for `--spec` input:
+
+```json
+{
+  "source": "4.1.0",
+  "main": "main",
+  "libraries": [
+    { "name": "0", "desc": "#Wiring" },
+    { "name": "1", "desc": "#Gates" }
+  ],
+  "circuits": [
+    {
+      "name": "main",
+      "attributes": { "circuitnamedboxfixedsize": "false" },
+      "components": [
+        {
+          "lib": "0",
+          "name": "Pin",
+          "loc": "(100,100)",
+          "attrs": { "facing": "east", "type": "input" }
+        }
+      ],
+      "wires": [
+        { "from": "(100,100)", "to": "(140,100)" }
+      ]
+    }
+  ]
+}
+```
+
+Normalize all point locations to `(x,y)` format.
+
+## Troubleshooting
+
+- Missing library errors: add the missing `<lib name="...">` entry and keep IDs consistent.
+- Invalid coordinate errors: rewrite points to `(x,y)` with integer values.
+- Unknown top-level node errors: keep top-level nodes limited to known Logisim nodes.
+- Pin compatibility issues in newer versions: prefer `type=input|output` and `behavior=...` style attributes.

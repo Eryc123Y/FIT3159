@@ -1,0 +1,4 @@
+interface:
+  display_name: "Logisim File Generator"
+  short_description: "Generate valid Logisim-evolution .circ files"
+  default_prompt: "Use $logisim-file-generation to generate a valid Logisim-evolution .circ file from a circuit spec."
