@@ -4,7 +4,9 @@
 This repository is for learning Monash FIT3159 (Computer Architecture).
 
 Primary goal each week:
-- Complete the weekly `applied` exercises.
+- Complete the weekly exercise set:
+  - odd weeks: `applied`
+  - even weeks: `lab`
 - Submit a clean, reproducible report using Typst or LaTeX.
 
 ## Working Principles
@@ -14,16 +16,16 @@ Primary goal each week:
 - Be ethical: no plagiarism, no collusion, cite all external references.
 
 ## Repository Layout (Current)
-- `w1-boolean algebra/`
+- `w1-boolean-algebra/`
   - `applied/`
   - `workshop/`
 - `w2-data-representation/`
-  - `applied/`
+  - `lab/`
   - `workshop/`
 - `Verilog/` (labs/experiments as needed)
 
 Recommended per-week layout extension:
-- `wX-topic/applied/`
+- `wX-topic/applied/` (odd weeks) or `wX-topic/lab/` (even weeks)
   - `assets/` (images/figures)
   - `submission/` (final PDF only)
   - `typst/` or `latex/` (source files)
@@ -32,10 +34,10 @@ Recommended per-week layout extension:
 ## Weekly Execution Workflow
 1. **Preview (before class)**
    - Read workshop slides and identify required concepts.
-   - List formulas, laws, and definitions needed for applied questions.
+   - List formulas, laws, and definitions needed for that week's task set (`applied` or `lab`).
 
 2. **Solve (during/after class)**
-   - Solve all applied questions manually first.
+   - Solve all task questions manually first (`applied` on odd weeks, `lab` on even weeks).
    - For logic/boolean tasks, show simplification steps and law names.
    - For architecture/data representation tasks, show assumptions and units.
 
@@ -72,7 +74,7 @@ Suggested files:
 
 Build command:
 ```bash
-typst compile main.typ ../submission/FIT3159_WX_Applied.pdf
+typst compile main.typ ../submission/FIT3159_WX_<AppliedOrLab>.pdf
 ```
 
 ## LaTeX Workflow
@@ -92,11 +94,11 @@ latexmk -pdf -interaction=nonstopmode -halt-on-error main.tex
 - Tables/figures are numbered and referenced.
 - PDF compiles with no errors.
 - Filename follows convention:
-  - `FIT3159_WX_Applied_<YourName>.pdf`
+  - `FIT3159_WX_<AppliedOrLab>_<YourName>.pdf`
 
 ## Definition of Done (Per Week)
 A week is complete only when all are true:
-- Applied tasks are solved.
+- Week task set is solved (`applied` for odd weeks, `lab` for even weeks).
 - One final PDF is generated and stored in `submission/`.
 - Source files are committed to the weekly folder.
 - `notes.md` captures:
@@ -113,7 +115,7 @@ A week is complete only when all are true:
 
 ## Answer Style Requirements (from Marking Rubric)
 
-Applied answers are marked on written quality (50%) and verbal explanation (50%).
+Applied/Lab answers are marked on written quality (50%) and verbal explanation (50%).
 
 **Accepted formats:**
 - Short paragraphs
@@ -145,7 +147,7 @@ Applied answers are marked on written quality (50%) and verbal explanation (50%)
 
 ## Agent/Assistant Scope in This Repo
 When helping in this repo, the assistant should:
-- Prioritize weekly applied completion and submission quality.
+- Prioritize weekly task completion (`applied` odd weeks, `lab` even weeks) and submission quality.
 - Default to creating or improving Typst/LaTeX source, not only plain notes.
 - Keep solutions concise but complete enough for marking — target 90–100% band.
 - Prefer bullet points and tables over prose paragraphs.

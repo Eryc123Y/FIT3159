@@ -37,6 +37,10 @@ Component format:
 
 Notes:
 - `lib` must match one `<lib name="...">`.
+- `lib` in JSON spec can be provided as:
+  - ID (`"1"`)
+  - description (`"#Gates"`)
+  - alias (`"gates"`, `"memory"`, `"io"`, etc.)
 - `name` must match a tool/component in that library.
 - `loc` should be integer coordinate in `(x,y)` format.
 - Attributes are `<a name="..." val="..."/>`.
@@ -46,6 +50,27 @@ Notes:
 - For worksheet-style decoder layouts matching `1.circ`:
   - left input pins: `facing="east"`
   - right output pins: `facing="west"` with `labelloc="east"`
+
+### Auto-Organized Placement (JSON Spec)
+
+Use top-level layout settings for cleaner generation:
+
+```json
+"layout": {
+  "mode": "auto",
+  "origin": "(100,100)",
+  "column_gap": 140,
+  "row_gap": 60,
+  "grid": 10,
+  "preserve_existing": true
+}
+```
+
+Per-component placement hints:
+- `id`: stable component identifier for connection routing.
+- `grid.column` / `grid.row`: place by slot.
+- `column` / `row` (or `stage` / `lane`): shorthand slot hints.
+- `loc`: exact coordinate override.
 
 ## 4) Wires
 
@@ -60,6 +85,26 @@ Notes:
 - Zero-length wires are ignored by Logisim parser.
 - If two independent nets share any coordinate, they become connected (junction).
 - To cross without connecting, route one net around with a small offset.
+
+### Endpoint Routing via `connections`
+
+`connections` supports component-based endpoints:
+
+```json
+{
+  "from": { "id": "A0", "anchor": "output" },
+  "to": { "id": "G1", "anchor": "input1" },
+  "style": "manhattan",
+  "elbow": "horizontal-first",
+  "via": [{ "point": "(200,120)" }]
+}
+```
+
+Endpoint object fields:
+- `id` / `component`: component id
+- `anchor`: `loc`, `input`, `input2`, `output`, `left`, `right`, `up`, `down`
+- `dx`, `dy`: integer offsets from anchor
+- `point`: explicit `(x,y)` endpoint
 
 ## 5) Coordinates
 
@@ -105,4 +150,5 @@ Recommended canonical style:
 - Ensure every `comp` has `name` and `loc`.
 - Ensure every `wire` has `from` and `to`.
 - Keep only known top-level tags.
+- Use `--organize` for cleaner sorting/routing when generation is messy.
 - Open in Logisim-evolution and save once to normalize output.
